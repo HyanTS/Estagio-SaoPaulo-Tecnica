@@ -1,0 +1,68 @@
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+public class FaturamentoDistribuidora {
+
+    public static void main(String[] args) {
+        String arquivoJson = "faturamento.json"; // Certifique-se de que o caminho do arquivo esteja correto
+        calcularFaturamento(arquivoJson);
+    }
+
+    public static void calcularFaturamento(String arquivoJson) {
+        double menorFaturamento = Double.MAX_VALUE; // Inicializa o menor faturamento
+        double maiorFaturamento = Double.MIN_VALUE; // Inicializa o maior faturamento
+        double somaFaturamento = 0; // Soma dos faturamentos
+        int diasComFaturamento = 0; // Contador de dias com faturamento
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivoJson))) {
+            StringBuilder jsonBuilder = new StringBuilder();
+            String linha;
+            while ((linha = br.readLine()) != null) {
+                jsonBuilder.append(linha);
+            }
+
+            JSONArray faturamento = new JSONArray(jsonBuilder.toString());
+
+            for (int i = 0; i < faturamento.length(); i++) {
+                JSONObject dia = faturamento.getJSONObject(i);
+                double valor = dia.getDouble("valor");
+
+                if (valor > 0) {
+                    // Calcular menor e maior faturamento
+                    if (valor < menorFaturamento) {
+                        menorFaturamento = valor;
+                    }
+                    if (valor > maiorFaturamento) {
+                        maiorFaturamento = valor;
+                    }
+
+                    // Calcular a soma e contar dias com faturamento
+                    somaFaturamento += valor;
+                    diasComFaturamento++;
+                }
+            }
+
+            double mediaFaturamento = somaFaturamento / diasComFaturamento;
+
+            // Contar quantos dias estão acima da média
+            int diasAcimaMedia = 0;
+            for (int i = 0; i < faturamento.length(); i++) {
+                JSONObject dia = faturamento.getJSONObject(i);
+                double valor = dia.getDouble("valor");
+                if (valor > mediaFaturamento) {
+                    diasAcimaMedia++;
+                }
+            }
+
+            System.out.println("Menor faturamento: " + menorFaturamento);
+            System.out.println("Maior faturamento: " + maiorFaturamento);
+            System.out.println("Dias acima da média mensal: " + diasAcimaMedia);
+        } catch (IOException e) {
+            System.err.println("Erro ao ler o arquivo: " + e.getMessage());
+        }
+    }
+}
